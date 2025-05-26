@@ -1,43 +1,61 @@
-const { exec, spawn } = require("child_process");
+// autograder.js
+const { execFile, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
-const UPLOAD_DIR = "Assignments";
-const EXPECTED_OUTPUT = "exp_1.txt";
+// Expected output file relative to this script
+const EXPECTED_OUTPUT = path.join(__dirname, "exp_1.txt");
 const GRADEBOOK_PATH = "gradebook.csv";
 
-function compileAndRun(cFile) {
-  return new Promise((resolve, reject) => {
-    const studentId = path.basename(cFile, ".c").replace("assignment", "");
+function compileAndRun(cFilePath) {
+  return new Promise((resolve) => {
+    const studentId = path.basename(cFilePath, ".c").replace("assignment", "");
+    // Create an isolated temp directory for this run
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `grade-${studentId}-`));
+    const binaryPath = path.join(tempDir, "assignment");
+    const tempOutputPath = path.join(tempDir, "output.txt");
 
-    // Compile
-    exec(`gcc ${cFile} -o assignment`, (err, stdout, stderr) => {
-      if (err) {
-        console.error(`[COMPILATION ERROR] ${stderr}`);
-        return resolve(false); // Failed compile = fail
+    // Compile the C file
+    execFile("gcc", [cFilePath, "-o", binaryPath], (compErr, _stdout, compStderr) => {
+      if (compErr) {
+        console.error(`[COMPILATION ERROR][${studentId}] ${compStderr.trim()}`);
+        fs.rm(tempDir, { recursive: true, force: true }, () => {});
+        return resolve(false);
       }
 
-      // Run program and write to output.txt
-      const outStream = fs.createWriteStream("output.txt");
-      const runProc = spawn("./assignment");
-
-      runProc.stdout.pipe(outStream);
+      // Run the binary in its temp directory so it writes output.txt there
+      const runProc = spawn(binaryPath, { cwd: tempDir });
+      runProc.stderr.on("data", (data) => {
+        console.error(`[RUNTIME STDERR][${studentId}] ${data.toString().trim()}`);
+      });
+      runProc.on("error", (err) => {
+        console.error(`[PROCESS SPAWN ERROR][${studentId}] ${err.message}`);
+        fs.rm(tempDir, { recursive: true, force: true }, () => {});
+        return resolve(false);
+      });
 
       runProc.on("close", (code) => {
         if (code !== 0) {
-          console.error(`[RUNTIME ERROR] exit code ${code}`);
-          return resolve(false); // Program crashed
+          console.error(`[RUNTIME ERROR][${studentId}] exit code ${code}`);
+          fs.rm(tempDir, { recursive: true, force: true }, () => {});
+          return resolve(false);
         }
-
-        // Compare output.txt and exp_1.txt
+        // After successful run, read the generated output.txt
         try {
-          const actual = fs.readFileSync("output.txt", "utf8");
-          const expected = fs.readFileSync(EXPECTED_OUTPUT, "utf8");
-          const passed = actual.trim() === expected.trim();
+          const normalize = s => s.replace(/\r\n/g, "\n").trim();
+          const actual = normalize(fs.readFileSync(tempOutputPath, "utf8"));
+          const expected = normalize(fs.readFileSync(EXPECTED_OUTPUT, "utf8"));
+          const passed = actual === expected;
+          if (!passed) {
+            console.log(`[MISMATCH][${studentId}] actual="${actual}" expected="${expected}"`);
+          }
           resolve(passed);
-        } catch (compareErr) {
-          console.error(`[COMPARE ERROR] ${compareErr}`);
+        } catch (err) {
+          console.error(`[COMPARE ERROR][${studentId}] ${err.message}`);
           resolve(false);
+        } finally {
+          fs.rm(tempDir, { recursive: true, force: true }, () => {});
         }
       });
     });
@@ -45,19 +63,12 @@ function compileAndRun(cFile) {
 }
 
 function appendToGradebook(studentId, passed, gradebookPath = GRADEBOOK_PATH) {
-    const header = "Student ID,Passed\n";
-    const row = `${studentId},${passed}\n`;
-  
-    // Check if the file exists and has content
-    const fileExists = fs.existsSync(gradebookPath);
-    const isEmpty = fileExists ? fs.readFileSync(gradebookPath, "utf8").trim().length === 0 : true;
-  
-    // Write header + row synchronously
-    const content = (isEmpty ? header : "") + row;
-    fs.appendFileSync(gradebookPath, content);
+  const header = "Student ID,Passed\n";
+  const row = `${studentId},${passed}\n`;
+  const fileExists = fs.existsSync(gradebookPath);
+  const isEmpty = fileExists ? fs.readFileSync(gradebookPath, "utf8").trim().length === 0 : true;
+  const content = (isEmpty ? header : "") + row;
+  fs.appendFileSync(gradebookPath, content);
 }
-    
-module.exports = {
-  compileAndRun,
-  appendToGradebook
-};
+
+module.exports = { compileAndRun, appendToGradebook };
