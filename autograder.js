@@ -3,6 +3,7 @@ const { execFile, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const e = require("express");
 
 // Expected output file relative to this script
 const EXPECTED_OUTPUT = path.join(__dirname, "exp_1.txt");
@@ -48,7 +49,7 @@ function compileAndRun(cFilePath) {
           const expected = normalize(fs.readFileSync(EXPECTED_OUTPUT, "utf8"));
           const passed = actual === expected;
           if (!passed) {
-            console.log(`[MISMATCH][${studentId}] actual="${actual}" expected="${expected}"`);
+            console.log(`[MISMATCH][${studentId}]\n actual="${actual}"\n expected="${expected}"`);
           }
           resolve(passed);
         } catch (err) {
@@ -61,6 +62,7 @@ function compileAndRun(cFilePath) {
     });
   });
 }
+
 
 function appendToGradebook(studentId, passed, gradebookPath = GRADEBOOK_PATH) {
   const header = "Student ID,Passed\n";

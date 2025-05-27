@@ -1,0 +1,32 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkibidiGrader™</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-4">SkibidiGrader™</h1>
+    <section id="upload-section" class="mb-6 p-4 flex justify-between bg-white rounded shadow">
+      <input id="file-input" type="file" accept=".c" multiple class="mb-2" />
+      <button id="upload-btn" class="px-4 py-2 bg-blue-500 text-white rounded">Upload & Grade</button>
+    </section>
+
+    <section id="status-section" class="mb-6 p-4 bg-white rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">Jobs</h2>
+      <ul id="jobs-list" class="space-y-2"></ul>
+    </section>
+
+    <section id="result-section" class="p-4 bg-white rounded shadow">
+      <h2 class="text-xl font-semibold mb-2">Results</h2>
+      <div id="results-container" class="space-y-4"></div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

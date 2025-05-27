@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <math.h>
 
-void assignment_func(int i) {
+void powers_of_2(int i) {
 
-FILE *file = fopen("output.txt", "w");
+FILE *file = fopen("output.txt", "a");
 if(file == NULL){
     printf("Unable to open file \n");
     return;
@@ -16,7 +16,7 @@ if(file == NULL){
 int x =1;
 while(x<=i){
     if(x==i){
-    fprintf(file, "%.0f", pow(2,2));    
+    fprintf(file, "%.0f", pow(2,x));    
     }else
     fprintf(file, "%.0f, ", pow(2,x));
     x++;
@@ -25,10 +25,23 @@ while(x<=i){
 fclose(file);
 return;
 
-
 }
 
+
+void write_hello() {
+    FILE *fp = fopen("output.txt", "a");
+    if (!fp) {
+        perror("Error opening output.txt");
+        return;
+    }
+    fprintf(fp, "Wello, Horld!\n");
+    fclose(fp);
+}
+
+
+
 int main(){
-assignment_func(7);
+write_hello();
+powers_of_2(7);
     return 0;
 }
