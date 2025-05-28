@@ -3,19 +3,19 @@ const { execFile, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const e = require("express");
+const e = require("express");  // unused, but left untouched per your request
 
 // Expected output file relative to this script
 const EXPECTED_OUTPUT = path.join(__dirname, "exp_1.txt");
-const GRADEBOOK_PATH = "gradebook.csv";
+const GRADEBOOK_PATH  = "gradebook.csv";
 
 function compileAndRun(cFilePath) {
   return new Promise((resolve) => {
-    const studentId = path.basename(cFilePath, ".c").replace("assignment", "");
+    const studentId     = path.basename(cFilePath, ".c").replace("assignment", "");
     // Create an isolated temp directory for this run
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `grade-${studentId}-`));
-    const binaryPath = path.join(tempDir, "assignment");
-    const tempOutputPath = path.join(tempDir, "output.txt");
+    const tempDir       = fs.mkdtempSync(path.join(os.tmpdir(), `grade-${studentId}-`));
+    const binaryPath    = path.join(tempDir, "assignment");
+    const tempOutputPath= path.join(tempDir, "output.txt");
 
     // Compile the C file
     execFile("gcc", [cFilePath, "-o", binaryPath], (compErr, _stdout, compStderr) => {
@@ -45,12 +45,28 @@ function compileAndRun(cFilePath) {
         // After successful run, read the generated output.txt
         try {
           const normalize = s => s.replace(/\r\n/g, "\n").trim();
-          const actual = normalize(fs.readFileSync(tempOutputPath, "utf8"));
-          const expected = normalize(fs.readFileSync(EXPECTED_OUTPUT, "utf8"));
-          const passed = actual === expected;
+          const actual   = normalize(fs.readFileSync(tempOutputPath, "utf8"));
+          const expected = normalize(fs.readFileSync(EXPECTED_OUTPUT,  "utf8"));
+          const passed   = actual === expected;
+
           if (!passed) {
-            console.log(`[MISMATCH][${studentId}]\n actual="${actual}"\n expected="${expected}"`);
+            console.log(
+              `[MISMATCH][${studentId}]\n actual="${actual}"\n expected="${expected}"`
+            );
+            // **NEW**: write the actual into ./output.txt so queueworker can read it
+            try {
+              fs.writeFileSync(
+                path.join(process.cwd(), "output.txt"),
+                actual,
+                "utf8"
+              );
+            } catch (copyErr) {
+              console.error(
+                `[COPY ERROR][${studentId}] ${copyErr.message}`
+              );
+            }
           }
+
           resolve(passed);
         } catch (err) {
           console.error(`[COMPARE ERROR][${studentId}] ${err.message}`);
@@ -63,13 +79,14 @@ function compileAndRun(cFilePath) {
   });
 }
 
-
 function appendToGradebook(studentId, passed, gradebookPath = GRADEBOOK_PATH) {
-  const header = "Student ID,Passed\n";
-  const row = `${studentId},${passed}\n`;
-  const fileExists = fs.existsSync(gradebookPath);
-  const isEmpty = fileExists ? fs.readFileSync(gradebookPath, "utf8").trim().length === 0 : true;
-  const content = (isEmpty ? header : "") + row;
+  const header    = "Student ID,Passed\n";
+  const row       = `${studentId},${passed}\n`;
+  const fileExists= fs.existsSync(gradebookPath);
+  const isEmpty   = fileExists
+    ? fs.readFileSync(gradebookPath, "utf8").trim().length === 0
+    : true;
+  const content   = (isEmpty ? header : "") + row;
   fs.appendFileSync(gradebookPath, content);
 }
 

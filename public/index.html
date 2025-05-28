@@ -5,28 +5,91 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SkibidiGrader™</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            doto: ['"Doto"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-4xl mx-auto">
-    <h1 class="text-2xl font-bold mb-4">SkibidiGrader™</h1>
-    <section id="upload-section" class="mb-6 p-4 flex justify-between bg-white rounded shadow">
-      <input id="file-input" type="file" accept=".c" multiple class="mb-2" />
-      <button id="upload-btn" class="px-4 py-2 bg-blue-500 text-white rounded">Upload & Grade</button>
-    </section>
+<body class="bg-gray-300 p-6">
+  <header class="mb-6 flex justify-between items-center bg-white p-4 rounded-md shadow">
+    <h1 class="text-2xl font-doto font-bold">SkibidiGrader™</h1>
+    <a
+      href="mailto:ta@youruniversity.edu?subject=SkibidiGrader%20Feedback"
+      class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full"
+    >
+      Problem? Email TA
+    </a>
+  </header>
 
-    <section id="status-section" class="mb-6 p-4 bg-white rounded shadow">
-      <h2 class="text-xl font-semibold mb-2">Jobs</h2>
-      <ul id="jobs-list" class="space-y-2"></ul>
-    </section>
+  <div class="max-w-6xl mx-auto flex justify-around space-x-6">
+    
+    <!-- LEADERBOARD SIDEBAR -->
+    <aside id="leaderboard" class="w-1/4 bg-white rounded-xl shadow p-4">
+      <h2 class="text-xl font-doto font-bold mb-4">Leaderboard 👑</h2>
+      <ol class="list-decimal font-doto list-inside space-y-2">
+        <li><span class="font-medium">V01038030</span> – 100%</li>
+        <li><span class="font-medium">V00248039</span> – 95%</li>
+        <li><span class="font-medium">V01029483</span> – 90%</li>
+        <li><span class="font-medium">V00495340</span> – 85%</li>
+        <li><span class="font-medium">V03092958</span> – 80%</li>
+      </ol>
+      <br>
+      <h2 class="text-xl font-doto font-bold mb-4">Fastest Code</h2>
+      <ol class="list-decimal font-doto font-semibold list-inside space-y-2">
+        <li><span class="font-medium">V01038030</span> – 0.013s</li>
+        <li><span class="font-medium">V00248039</span> – 0.020s</li>
+        <li><span class="font-medium">V01029483</span> – 0.035s</li>
+        <li><span class="font-medium">V00495340</span> – 0.060s</li>
+        <li><span class="font-medium">V03092958</span> – 0.156s</li>
+      </ol>
+    </aside>
 
-    <section id="result-section" class="p-4 bg-white rounded shadow">
-      <h2 class="text-xl font-semibold mb-2">Results</h2>
-      <div id="results-container" class="space-y-4"></div>
-    </section>
+
+
+    <div class="max-w-4xl mx-auto">
+      <section id="upload-section" class="mb-6 p-4 flex justify-between bg-white rounded-xl shadow">
+        <h3 class="text-xl font-doto font-semibold mb-2">Upload a file -></h3>
+        <input id="file-input" type="file" accept=".c" multiple class="mb-2" />
+        <button id="upload-btn" class="px-4 py-2 bg-blue-500 text-white hover:bg-red-300 rounded-full">Upload & Grade</button>
+      </section>
+  
+      <section id="status-section" class="mb-6 p-4 bg-white rounded-xl shadow">
+        <h2 class="text-xl font-doto font-semibold mb-2">Status</h2>
+        <ul id="jobs-list" class="space-y-2"></ul>
+      </section>
+  
+      <section id="result-section" class="p-4 bg-white rounded-xl shadow">
+        <h2 class="text-xl font-doto font-semibold mb-2">Results</h2>
+        <div id="results-container" class="space-y-4"></div>
+      </section>
+  
+      <section id="analytics-section" class="p-4 bg-white rounded-xl shadow">
+        <div id="analytics-container" class="space-y-4">
+          <div class="flex items-center space-x-6">
+            <div>
+              <p id="mean-value" class="text-lg text-gray-800">Mean: 75</p>
+              <p id="std-value"  class="text-lg text-gray-800">Std Dev: 10</p>
+            </div>
+            <canvas id="analytics-chart" width="300" height="150"></canvas>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script src="app.js"></script>
   </div>
 
-  <script src="app.js"></script>
 </body>
 </html>

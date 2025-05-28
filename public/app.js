@@ -5,9 +5,12 @@ const uploadBtn        = document.getElementById('upload-btn');
 const fileInput        = document.getElementById('file-input');
 const jobsList         = document.getElementById('jobs-list');
 const resultsContainer = document.getElementById('results-container');
+const analytContainer  = document.getElementById('analytics-container')
 
 // Track the <li> for each filename
 const jobs = {};
+
+const MAX_FILE_SIZE = 2 * 1024 * 1024; //2MB max file size in bytes
 
 // Open WebSocket first
 const socket = new WebSocket(`ws://${location.host}/ws`);
@@ -15,7 +18,6 @@ socket.onopen    = () => console.log('🟢 WS connected');
 socket.onerror   = err => console.error('🔴 WS error', err);
 socket.onmessage = (event) => {
   const data = JSON.parse(event.data);
-  console.log('[Debug] data:',data)
   console.log('⬅️ WS message:', data);
 
   const { file, status, passed, actual, expected } = data;
@@ -52,13 +54,18 @@ socket.onmessage = (event) => {
         <pre class="bg-gray-100 p-2 mt-2"><code>${expected}</code></pre>
       `;
     }
-    resultsContainer.appendChild(div);
+    resultsContainer.prepend(div);
   }
 };
 
 // Upload handler
 uploadBtn.addEventListener('click', () => {
   const files = Array.from(fileInput.files);
+  const tooBig = files.filter(f => f.size > MAX_FILE_SIZE);
+  if (tooBig.length) {
+    alert(`Cannot upload; these exceed 2 MB:\n• ${tooBig.map(f=>f.name).join('\n• ')}`);
+    return;
+  }
   if (!files.length) return alert('Please select .c file(s)');
 
   // Show them as pending *immediately*
@@ -83,3 +90,59 @@ uploadBtn.addEventListener('click', () => {
     })
     .catch(err => console.error(err));
 });
+
+;(function(){
+  // stubbed stats
+  const analyticsData = { mean: 75, std: 10 };
+
+  // render text
+  const meanEl = document.createElement('p');
+  meanEl.textContent = `Mean: ${analyticsData.mean}`;
+  meanEl.className = 'text-lg text-gray-800';
+  const stdEl  = document.createElement('p');
+  stdEl.textContent  = `Std Dev: ${analyticsData.std}`;
+  stdEl.className   = 'text-lg text-gray-800';
+
+  const statsWrapper = document.createElement('div');
+  statsWrapper.className = 'flex items-center space-x-6';
+  const textWrapper  = document.createElement('div');
+  textWrapper.append(meanEl, stdEl);
+
+  // insert text into analytics container
+  statsWrapper.append(textWrapper);
+
+  // create canvas for chart
+  const canvas = document.createElement('canvas');
+  canvas.id    = 'analytics-chart';
+  canvas.width = 300;
+  canvas.height= 150;
+  statsWrapper.append(canvas);
+
+  analytContainer.append(statsWrapper);
+
+  // build labels & normal-pdf values
+  const labels = Array.from({length:151}, (_,i) => i);
+  const values = labels.map(x => {
+    const μ = analyticsData.mean, σ = analyticsData.std;
+    return (1/(σ*Math.sqrt(2*Math.PI))) *
+      Math.exp(-((x-μ)**2)/(2*σ*σ));
+  });
+
+  // render chart
+  const ctx = canvas.getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Normal Distribution',
+        data: values,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+})();
