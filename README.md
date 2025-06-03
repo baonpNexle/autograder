@@ -25,7 +25,6 @@ A Node.js-based backend that automates grading of C programming assignments. It 
 ---
 
 ## 📂 Project Structure
-.
 ├── main.js # API server & file upload logic
 ├── queueworker.js # Processes grading queue
 ├── autograder.js # Compiles, runs, and grades submissions
