@@ -1,25 +1,35 @@
 # Automated Grading System for C Files
 
-A Node.js-based backend system designed to automatically grade C programming assignments submitted by students. It supports file upload, compilation, execution, and result logging — all within an isolated, concurrent, and testable environment.
+A Node.js-based backend that automates grading of C programming assignments. It handles file uploads, compilation, execution, and result logging, with MinIO object storage for submitted files.
 
-## ✨ Features
+---
 
-- 🔼 Upload endpoint to submit `.c` files via web or `curl`
-- 🧠 Intelligent queue worker that:
-  - Compiles C code using `gcc`
-  - Runs test cases against expected output
-  - Detects crashes, infinite loops, and compile-time warnings
-- 📦 MinIO integration for object storage
-- 📊 Auto-updated `gradebook.csv` with grading results
-- ✅ Robust test coverage for edge cases (malicious files, duplicates, missing metadata, etc.)
+## 🔧 Features
+- **Upload API** for `.c` files (single or multiple)
+- **MinIO** object storage integration
+- **GCC** compilation and execution against predefined test cases
+- **gradebook.csv** for persistent result logging
+- **Queue worker** for asynchronous, concurrent grading jobs
 
-## 🛠️ Tech Stack
+---
 
-- **Node.js**, **Express** – API and job coordination  
-- **MinIO** – S3-compatible file storage  
-- **Docker** – Sandboxed compilation & execution  
-- **Bash**, **GCC** – System-level grading logic  
-- **CSV** – Simple and readable results persistence
+## 🛠 Tech Stack
+| Layer        | Technology |
+|--------------|------------|
+| Backend      | Node.js, Express |
+| Storage      | MinIO (S3-compatible) |
+| Compilation  | GCC, Bash scripts |
+| Execution    | Future Docker isolation (road-mapped) |
+| Results      | CSV (gradebook.csv) |
 
-## 📁 Project Structure
+---
+
+## 📂 Project Structure
+├── main.js # API server & file upload logic
+├── queueworker.js # Processes grading queue
+├── autograder.js # Compiles, runs, and grades submissions
+├── gradebook.csv # Stores grading results
+├── testcases/ # Expected input/output files
+└── uploads/ # Temporary file storage
+
 
