@@ -3,7 +3,7 @@ const { execFile, spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const e = require("express");  // unused, but left untouched per your request
+const e = require("express");
 
 // Expected output file relative to this script
 const EXPECTED_OUTPUT = path.join(__dirname, "exp_1.txt");
@@ -53,7 +53,7 @@ function compileAndRun(cFilePath) {
             console.log(
               `[MISMATCH][${studentId}]\n actual="${actual}"\n expected="${expected}"`
             );
-            // **NEW**: write the actual into ./output.txt so queueworker can read it
+            // write the actual into ./output.txt so queueworker can read it
             try {
               fs.writeFileSync(
                 path.join(process.cwd(), "output.txt"),
